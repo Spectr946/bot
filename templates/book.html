@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<p>
+<a href="/admin/books">Все учебники</a>
+</p>
+<section class="panel">
+  <p>Предмет: {{ book.subject }}</p>
+  <h2>Темы из учебника</h2>
+  {% if topic_review.status == 'reviewed' %}
+  <p>Темы очищены и проверены ИИ.</p>
+  {% elif topic_review.status == 'failed' %}
+  <p>Темы очищены автоматически. {{ topic_review.error }}</p>
+  {% else %}
+  <p>Темы очищены автоматически.</p>
+  {% endif %}
+  {% if topics %}
+  <p>Выберите тему для квиза. При необходимости её можно изменить перед созданием вопросов.</p>
+  <ul>{% for topic in topics %}
+    <li>
+    <a href="/admin/quizzes?book_id={{ book.id }}&amp;topic={{ topic|urlencode }}">{{ topic }}</a>
+    </li>
+  {% endfor %}</ul>
+  {% else %}<p>Заголовки разделов не найдены. Тему можно ввести самостоятельно при создании квиза.</p>{% endif %}
+  <a class="button" href="/admin/quizzes?book_id={{ book.id }}">Создать квиз по учебнику</a>
+  <form method="post" action="/admin/books/{{ book.id }}/review-topics">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <button type="submit">Проверить темы с ИИ</button>
+  </form>
+</section>
+{% endblock %}

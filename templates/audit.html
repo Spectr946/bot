@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+<div class="section-heading">
+<h2>История изменений</h2>
+<span class="muted">{{ events|length }} событий</span>
+</div>{% if events %}<div class="table-scroll">
+<table>
+<thead>
+<tr>
+<th>Дата</th>
+<th>Кто</th>
+<th>Действие</th>
+<th>Подробности</th>
+</tr>
+</thead>
+<tbody>{% for event in events %}<tr>
+<td class="date-cell">{{ event.created_at }}</td>
+<td>{{ event.actor }}</td>
+<td>{{ event.action|action_name }}</td>
+<td>
+<code class="audit-details">{{ event.details|pretty_json }}</code>
+</td>
+</tr>{% endfor %}</tbody>
+</table>
+</div>{% else %}<div class="empty">
+<h3>Изменений пока нет</h3>
+<p>Загрузка учебников, публикация работ и решения по заявкам будут записаны здесь.</p>
+</div>{% endif %}</section>
+{% endblock %}

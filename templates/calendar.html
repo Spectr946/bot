@@ -1,0 +1,23 @@
+<section class="panel">
+  <h2>Ежедневные задания</h2>
+  <form action="/admin/mini/settings" method="post" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label class="check full-width">
+    <input type="checkbox" name="enabled" value="yes" {% if settings.mini_book_id %}checked{% endif %}>Включить ежедневные задания</label>
+    <label>Учебник<select name="book_id">
+    <option value="">Выберите учебник</option>{% for book in books %}<option value="{{ book.id }}" {% if settings.mini_book_id == book.id %}selected{% endif %}>{{ book.title }} — {{ book.subject }}</option>{% endfor %}</select>
+    </label>
+    <label>Тема<input name="topic" value="{{ settings.mini_topic or '' }}" maxlength="250" placeholder="Введите тему">
+    </label>
+    <div class="full-width">
+    <button type="submit">Сохранить</button>
+    </div>
+  </form>
+  <form action="/admin/mini/prepare" method="post" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>Класс<select name="group_id">
+    <option value="">Все ученики</option>{% for group in groups %}<option value="{{ group.id }}">{{ group.name }}</option>{% endfor %}</select>
+    </label>
+    <button class="secondary" type="submit">Открыть задание на сегодня</button>
+  </form>
+</section>

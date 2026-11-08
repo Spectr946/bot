@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h2>Классы</h2>
+  {% if groups or unassigned_count %}<ul class="plain-list">
+    {% for group in groups %}<li>
+    <a href="/admin/users?group_id={{ group.id }}">{{ group.name }}</a> — {{ counts[group.id|string] }} учеников</li>{% endfor %}
+    {% if unassigned_count %}<li>
+    <a href="/admin/users?group_id=unassigned">Без класса</a> — {{ unassigned_count }} учеников</li>{% endif %}
+  </ul>{% else %}<p>Пока нет классов и учеников.</p>{% endif %}
+  <form action="/admin/groups" method="post" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>Новый класс<input name="name" placeholder="7А" required maxlength="100">
+    </label>
+    <button type="submit">Добавить класс</button>
+  </form>
+</section>
+{% if selected_group_id %}
+<section class="panel">
+  <h2>{{ selected_group.name if selected_group else 'Без класса' }}</h2>
+  {% if users %}
+  <div class="table-scroll">
+  <table>
+    <thead>
+    <tr>
+    <th>Ученик</th>
+    <th>Последняя активность</th>
+    <th>Пройдено</th>
+    <th>Средний результат</th>
+    <th>Темы с ошибками</th>
+    <th>Монеты</th>
+    <th>ФИО и класс</th>
+    </tr>
+    </thead>
+    <tbody>{% for user in users %}<tr>
+      <td>
+      <strong>{{ user.name or 'Без имени' }}</strong>{% if user.username %}<div>@{{ user.username }}</div>{% endif %}<small>ID {{ user.id }}</small>{% if not user.registered %}<small>Регистрация не завершена</small>{% endif %}</td>
+      <td>{{ user.last_seen|local_time }}</td>
+      <td>{{ user.completed_count }}</td>
+      <td>{% if user.average_percent is not none %}{{ '%.0f'|format(user.average_percent) }}%{% else %}Пока нет результатов{% endif %}</td>
+      <td>{{ user.weak_topics|join(', ') or 'Пока нет данных' }}</td>
+      <td>{{ user.coins }}</td>
+      <td>
+      <form action="/admin/users/{{ user.id }}" method="post" class="stack compact">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <label>ФИО<input name="name" value="{{ user.name }}" required maxlength="150">
+        </label>
+        <label>Класс<select name="group_id" required>
+        <option value="">Без класса</option>{% for group in groups %}<option value="{{ group.id }}" {% if user.group_id == group.id %}selected{% endif %}>{{ group.name }}</option>{% endfor %}</select>
+        </label>
+        <button class="secondary" type="submit">Сохранить</button>
+      </form>
+      </td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  </div>
+  {% else %}<p>В этом классе пока нет учеников.</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

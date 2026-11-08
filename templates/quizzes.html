@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h2>Создать квиз</h2>
+  {% if books %}
+  <form action="/admin/quizzes" method="get" class="inline-form">
+    <label>Учебник<select name="book_id">{% for book in books %}<option value="{{ book.id }}" {% if selected_book.id == book.id %}selected{% endif %}>{{ book.title }} — {{ book.subject }}</option>{% endfor %}</select>
+    </label>
+    <button class="secondary" type="submit">Выбрать</button>
+  </form>
+  <form action="/admin/quizzes" method="post" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <input type="hidden" name="book_id" value="{{ selected_book.id }}">
+    <label class="full-width">Тема<input name="topic" list="book-topics" value="{{ selected_topic }}" required maxlength="250" placeholder="Выберите или напишите тему">
+      <datalist id="book-topics">{% for topic in topics %}<option value="{{ topic }}">{% endfor %}</datalist>
+    </label>
+    <label>Количество вопросов<input type="number" name="count" min="1" max="30" value="10" required>
+    </label>
+    <label>Класс<select name="group_id">
+    <option value="">Все ученики</option>{% for group in groups %}<option value="{{ group.id }}">{{ group.name }}</option>{% endfor %}</select>
+    </label>
+    <div class="full-width">
+    <button type="submit">Создать вопросы</button>
+    </div>
+  </form>
+  {% else %}<p>Сначала <a href="/admin/books">загрузите учебник</a>.</p>{% endif %}
+</section>
+<section class="panel">
+  <h2>Список квизов</h2>
+  {% if quizzes %}<div class="table-scroll">
+  <table>
+    <thead>
+    <tr>
+    <th>Тема</th>
+    <th>Тип</th>
+    <th>Класс</th>
+    <th>Вопросов</th>
+    <th>Статус</th>
+    <th>Действие</th>
+    </tr>
+    </thead>
+    <tbody>{% for quiz in quizzes %}<tr>
+      <td>
+      <a href="/admin/quizzes/{{ quiz.id }}">{{ quiz.topic }}</a>{% if quiz.day %}<small>{{ quiz.day }}</small>{% endif %}</td>
+      <td>Квиз</td>
+      <td>{{ quiz.group_name or 'Все ученики' }}</td>
+      <td>{{ quiz.count }}</td>
+      <td>{{ quiz.status|status_name }}</td>
+      <td>{% include 'delete_quiz.html' %}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  </div>{% else %}<p>Квизов пока нет.</p>{% endif %}
+</section>
+<section class="panel">
+  <h2>Последние результаты</h2>
+  {% if results %}<div class="table-scroll">
+  <table>
+    <thead>
+    <tr>
+    <th>Ученик</th>
+    <th>Тема</th>
+    <th>Верно</th>
+    <th>Монеты</th>
+    </tr>
+    </thead>
+    <tbody>{% for result in results %}<tr>
+      <td>{{ result.user_name or result.user_id }}</td>
+      <td>{% if result.quiz_id %}<a href="/admin/quizzes/{{ result.quiz_id }}">{{ result.topic }}</a>{% else %}{{ result.topic }}{% endif %}</td>
+      <td>{{ result.score }} из {{ result.total }}</td>
+      <td>{{ result.coins }}</td>
+    </tr>{% endfor %}</tbody>
+  </table>
+  </div>
+  <p>
+  <a href="/admin/results">Все результаты</a>
+  </p>{% else %}<p>Ученики ещё не прошли квизы.</p>{% endif %}
+</section>
+{% endblock %}

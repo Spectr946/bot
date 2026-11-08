@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h2>Загрузить учебник</h2>
+  <form action="/admin/books" method="post" enctype="multipart/form-data" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>Название<input name="title" required maxlength="200" placeholder="Биология, 7 класс">
+    </label>
+    <label>Предмет<select name="subject" required>
+    <option value="">Выберите предмет</option>{% for subject in subjects %}<option value="{{ subject.name }}">{{ subject.name }}</option>{% endfor %}</select>
+    </label>
+    <label class="full-width">Файл<input type="file" name="file" required accept=".txt,.pdf,.docx,.png,.jpg,.jpeg,.webp,.tif,.tiff">
+    </label>
+    <div class="full-width">
+    <button type="submit">Загрузить учебник</button>
+    </div>
+  </form>
+</section>
+<section class="panel">
+  <h2>Предметы</h2>
+  <form action="/admin/subjects" method="post" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>
+    <input name="name" aria-label="Название предмета" required maxlength="100" placeholder="Например, физика">
+    </label>
+    <button type="submit">Добавить предмет</button>
+  </form>
+  {% if subjects %}<ul class="plain-list">
+    {% for subject in subjects %}<li>
+    <form action="/admin/subjects/{{ subject.id }}/delete" method="post" class="row-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <span>{{ subject.name }}</span>
+    <button type="submit" class="secondary">Удалить</button>
+    </form>
+    </li>{% endfor %}
+  </ul>{% else %}<p>Добавьте предмет, чтобы выбрать его при загрузке учебника.</p>{% endif %}
+</section>
+<section class="panel">
+  <h2>Загруженные учебники</h2>
+  {% if books %}
+  <div class="table-scroll">
+  <table>
+    <thead>
+    <tr>
+    <th>Название</th>
+    <th>Предмет</th>
+    <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>{% for book in books %}
+      <tr id="book-{{ book.id }}">
+        <td>
+        <a href="/admin/books/{{ book.id }}">{{ book.title }}</a>
+        </td>
+        <td>{{ book.subject }}</td>
+        <td>
+        <a href="/admin/books/{{ book.id }}">Посмотреть темы</a> · <a href="/admin/quizzes?book_id={{ book.id }}">Создать квиз</a>
+          <details class="delete-details">
+          <summary>Удалить</summary>
+            <form action="/admin/books/{{ book.id }}/delete" method="post" class="stack">
+              <input type="hidden" name="csrf_token" value="{{ csrf }}">
+              <label class="check">
+              <input type="checkbox" name="confirmed" value="yes" required>Подтверждаю удаление</label>
+              <button class="secondary" type="submit">Удалить учебник</button>
+            </form>
+          </details>
+        </td>
+      </tr>
+    {% endfor %}</tbody>
+  </table>
+  </div>
+  {% else %}<p>Учебников пока нет. Загрузите первый файл.</p>{% endif %}
+</section>
+{% endblock %}

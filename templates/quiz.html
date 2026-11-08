@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="back-link" href="{{ '/admin/tests' if quiz.kind in ['mini', 'test'] else '/admin/quizzes' }}">← {{ 'Все тесты' if quiz.kind in ['mini', 'test'] else 'Все квизы' }}</a>
+<section class="panel">
+<div class="section-heading">
+<h2>{{ 'Тест с монетами' if quiz.kind in ['mini', 'test'] else 'Квиз' }}</h2>
+<span class="status {{ quiz.status }}">{{ quiz.status|status_name }}</span>
+</div>
+<dl class="facts compact-facts">
+<div>
+<dt>Учебник</dt>
+<dd>{{ quiz.book_title }}</dd>
+</div>
+<div>
+<dt>Предмет</dt>
+<dd>{{ quiz.subject }}</dd>
+</div>
+<div>
+<dt>Класс</dt>
+<dd>{{ quiz.group_name or 'Все ученики' }}</dd>
+</div>
+<div>
+<dt>Вопросов</dt>
+<dd>{{ quiz.questions|length }}</dd>
+</div>{% if quiz.day %}<div>
+<dt>День теста</dt>
+<dd>{{ quiz.day }}</dd>
+</div>{% endif %}</dl>{% if quiz.status == 'draft' %}<form action="/admin/quizzes/{{ quiz.id }}/publish" method="post" class="publish-form">
+<input type="hidden" name="csrf_token" value="{{ csrf }}">
+<label class="check">
+<input type="checkbox" name="reviewed" value="yes" required>Я проверил(а) вопросы, варианты и правильные ответы</label>
+<button type="submit">Опубликовать для учеников</button>
+</form>{% elif quiz.status == 'published' %}<form action="/admin/quizzes/{{ quiz.id }}/close" method="post">
+<input type="hidden" name="csrf_token" value="{{ csrf }}">
+<button class="secondary" type="submit">Закрыть работу</button>
+</form>{% elif quiz.status == 'deleted' %}<p class="muted">Удалено из списка. Результаты учеников сохранены.</p>{% else %}<p class="muted">Работа закрыта. Сохранённые результаты доступны в отчёте.</p>{% endif %}</section>
+{% if quiz.status != 'deleted' %}<section class="panel">{% include 'delete_quiz.html' %}</section>{% endif %}
+<div class="section-heading question-list-heading">
+<h2>Вопросы и ключ ответов</h2>
+<span class="muted">Виден только преподавателю</span>
+</div>{% for question in quiz.questions %}<article class="panel question">
+<div class="question-title">
+<span class="question-number">{{ loop.index }}</span>
+<h3>{{ question.question }}</h3>
+</div>
+<ol class="options" type="A">{% for option in question.options %}<li class="{% if loop.index0 == question.answer %}correct{% endif %}">
+<span>{{ option }}</span>{% if loop.index0 == question.answer %}<strong>Правильный ответ</strong>{% endif %}</li>{% endfor %}</ol>
+<div class="explanation">
+<strong>Объяснение</strong>
+<p>{{ question.explanation }}</p>
+</div>
+</article>{% endfor %}
+{% if quiz.status == 'draft' %}<details class="panel edit-questions">
+<summary>Редактировать вопросы и ответы</summary>
+<p class="muted">Исправьте формулировки и выберите верный вариант. Сохранённый черновик остаётся недоступным ученикам до публикации.</p>
+<form action="/admin/quizzes/{{ quiz.id }}/edit" method="post" class="stack">
+<input type="hidden" name="csrf_token" value="{{ csrf }}">{% for question in quiz.questions %}<fieldset>
+<legend>Вопрос {{ loop.index }}</legend>
+<div class="stack">
+<label>Формулировка<textarea name="question" rows="2" required maxlength="2000">{{ question.question }}</textarea>
+</label>
+<div class="form-grid">{% for option in question.options %}<label>Вариант {{ loop.index }}<input name="option" value="{{ option }}" required maxlength="1000">
+</label>{% endfor %}</div>
+<label>Правильный вариант<select name="answer">{% for index in range(4) %}<option value="{{ index }}" {% if question.answer == index %}selected{% endif %}>Вариант {{ index + 1 }}</option>{% endfor %}</select>
+</label>
+<label>Объяснение<textarea name="explanation" rows="2" required maxlength="3000">{{ question.explanation }}</textarea>
+</label>
+</div>
+</fieldset>{% endfor %}<div>
+<button type="submit">Сохранить вопросы</button>
+</div>
+</form>
+</details>{% endif %}
+<section class="panel">
+  <h2>Результаты учеников</h2>
+  {% if results %}<div class="table-scroll">
+  <table>
+  <thead>
+  <tr>
+  <th>Ученик</th>
+  <th>Верно</th>
+  <th>Монеты</th>
+  <th>Ошибки</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for result in results %}<tr>
+  <td>{{ result.user_name or result.user_id }}</td>
+  <td>{{ result.score }} из {{ result.total }}</td>
+  <td>{{ result.coins }}</td>
+  <td>{% if result.errors %}<details>
+  <summary>{{ result.errors|length }} ошибок</summary>{% for error in result.errors %}<p>{{ error.question }}<br>Ответ: {{ error.selected or 'Нет ответа' }}<br>Правильно: {{ error.correct_answer }}</p>{% endfor %}</details>{% else %}Без ошибок{% endif %}</td>
+  </tr>{% endfor %}
+  </tbody>
+  </table>
+  </div>{% else %}<p>Этот тест ещё никто не прошёл.</p>{% endif %}
+</section>
+{% endblock %}

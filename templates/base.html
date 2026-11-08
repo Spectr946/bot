@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} · Учебный бот</title>
+  <meta name="color-scheme" content="light">
+  <link rel="stylesheet" href="{{ url_for('static', path='/admin.css').path }}">
+  {% block extra_head %}
+  {% endblock %}
+</head>
+<body>
+{% if request.session.get('authenticated') %}
+<header class="topbar">
+  <a class="brand" href="/admin/books">Учебный бот</a>
+  <nav aria-label="Разделы панели">
+    <a href="/admin/books" {% if path.startswith('/admin/books') or path.startswith('/admin/uploads/') %}aria-current="page"{% endif %}>Учебники</a>
+    <a href="/admin/quizzes" {% if path.startswith('/admin/quizzes') %}aria-current="page"{% endif %}>Квизы</a>
+    <a href="/admin/tests" {% if path.startswith('/admin/tests') %}aria-current="page"{% endif %}>Тесты</a>
+    <a href="/admin/users" {% if path.startswith('/admin/users') %}aria-current="page"{% endif %}>Ученики</a>
+    <a href="/admin/shop" {% if path.startswith('/admin/shop') %}aria-current="page"{% endif %}>Сертификаты</a>
+  </nav>
+  <form action="/admin/logout" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <button class="secondary" type="submit">Выйти</button>
+  </form>
+</header>
+{% endif %}
+<main class="{% if request.session.get('authenticated') %}workspace{% else %}public-workspace{% endif %}">
+  {% if request.session.get('authenticated') %}<h1>{{ title }}</h1>{% endif %}
+  {% if notice %}<div class="notice" role="status">{{ notice }}</div>{% endif %}
+  {% if error %}<div class="error-notice" role="alert">{{ error }}</div>{% endif %}
+  {% block content %}
+  {% endblock %}
+</main>
+</body>
+</html>

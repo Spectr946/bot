@@ -1,0 +1,10 @@
+<details class="delete-details">
+<summary>Удалить {{ 'тест' if quiz.kind in ['mini', 'test'] else 'квиз' }}</summary>
+  <form action="/admin/quizzes/{{ quiz.id }}/delete" method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <p class="muted">Прохождение станет недоступно. Результаты учеников сохранятся.</p>
+    <label class="check">
+    <input type="checkbox" name="confirmed" value="yes" required>Подтверждаю удаление</label>
+    <button class="secondary" type="submit">Удалить</button>
+  </form>
+</details>

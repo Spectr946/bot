@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="login-card">
+  <h1>Учебный бот</h1>
+  <h2>Вход для учителя</h2>
+  <form action="/admin/login" method="post" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>Логин<input name="username" autocomplete="username" required autofocus maxlength="100">
+    </label>
+    <label>Пароль<input type="password" name="password" autocomplete="current-password" required>
+    </label>
+    <button type="submit">Войти</button>
+  </form>
+</section>
+{% endblock %}

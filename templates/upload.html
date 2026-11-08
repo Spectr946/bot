@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+{% if upload.status in ['queued', 'processing'] %}<meta http-equiv="refresh" content="3">{% endif %}
+{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="section-heading">
+  <h2>{{ upload.title }}</h2>
+  <a href="/admin/books">К учебникам</a>
+  </div>
+  <p class="muted">{{ upload.filename }}</p>
+  {% if upload.status == 'queued' %}
+  <h3>Файл в очереди</h3>
+  <p role="status">Обработка начнётся после предыдущих загрузок. Можно закрыть страницу: учебник продолжит обрабатываться.</p>
+  {% elif upload.status == 'processing' %}
+  <h3>Учебник обрабатывается</h3>
+  <p role="status">{{ upload.stage|upload_stage }}</p>
+  {% if upload.total_pages %}<p>Обработано страниц: {{ upload.completed_pages or 0 }} из {{ upload.total_pages }}.</p>
+  <progress max="{{ upload.total_pages }}" value="{{ upload.completed_pages or 0 }}" aria-label="Обработано страниц">{{ upload.completed_pages or 0 }} из {{ upload.total_pages }}</progress>{% endif %}
+  <p class="muted">Можно закрыть страницу и вернуться позже. Большие сканы могут обрабатываться несколько минут.</p>
+  {% elif upload.status == 'completed' %}
+  <h3>Учебник готов</h3>
+  <p role="status">Текст сохранён в библиотеке. Теперь можно создать квиз по его теме.</p>
+  <p>
+  <a href="/admin/books#book-{{ upload.book_id }}">Открыть в библиотеке</a> · <a href="/admin/quizzes">Создать проверочную работу</a>
+  </p>
+  {% elif upload.status == 'failed' %}
+  <h3>Не удалось обработать учебник</h3>
+  <p class="error-notice" role="alert">{{ upload.error or 'Не удалось распознать текст. Попробуйте загрузить файл повторно.' }}</p>
+  {% if upload.can_retry %}
+  <form method="post" action="/admin/uploads/{{ upload.id }}/retry">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <button type="submit">Продолжить обработку</button>
+  </form>
+  <p class="muted">Файл сохранён. При повторе используются доступные сохранённые страницы, загружать учебник заново не нужно.</p>
+  {% else %}
+  <p>Исходный файл больше не сохранён. <a href="/admin/books">Загрузить учебник заново</a>.</p>
+  {% endif %}
+  {% else %}
+  <p>Статус загрузки пока неизвестен. Вернитесь к списку учебников.</p>
+  {% endif %}
+  {% if upload.status in ['queued', 'processing'] %}<p class="muted">Статус обновляется автоматически каждые 3 секунды.</p>{% endif %}
+</section>
+{% endblock %}
